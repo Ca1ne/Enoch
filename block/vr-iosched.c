@@ -73,7 +73,12 @@ return q->elevator->elevator_data;
 static void
 vr_add_rq_rb(struct vr_data *vd, struct request *rq)
 {
-	elv_rb_add(root, rq);
+struct request *alias = elv_rb_add(&vd->sort_list, rq);
+
+if (unlikely(alias)) {
+vr_move_request(vd, alias);
+alias = elv_rb_add(&vd->sort_list, rq);
+BUG_ON(alias);
 }
 
 if (blk_rq_pos(rq) >= vd->last_sector) {
